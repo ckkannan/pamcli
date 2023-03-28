@@ -1,6 +1,5 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -10,6 +9,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	defaultHost      = "pamtest.example.com"
+	defaultUser      = "testuser"
+	defaultPass      = "testpass"
+	defaultsslIgnore = false
 )
 
 var cfgFile string
@@ -64,14 +70,32 @@ func initConfig() {
 
 		// Search config in home directory with name ".pamcli" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigType("yaml")
+		viper.SetConfigType("json")
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("../etc")
+		viper.AddConfigPath("config")
 		viper.SetConfigName(".pamcli")
-	}
+		err = viper.ReadInConfig()
+		if err != nil {
+			fmt.Println("fatal error reading Config file: default \n", err)
+			os.Exit(1)
+		}
 
+	}
+	viper.SetDefault("connection.host", defaultHost)
+	viper.SetDefault("connection.user", defaultUser)
+	viper.SetDefault("connection.pass", defaultPass)
+	viper.SetDefault("connection.sslignore", defaultsslIgnore)
+	viper.SetEnvPrefix("TF_VAR_")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+
+	host := viper.GetString("connection.host")
+
+	fmt.Println("============== All Configurations ===================== ")
+	fmt.Printf("Host : %s User \n", host)
 }
